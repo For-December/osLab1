@@ -1,22 +1,21 @@
-package main
+package algorithm
 
 import (
+	"osLab1/models"
 	"osLab1/utls/logger"
 )
 
 // RoundRobin 模拟时间片轮转调度算法
 // 参考1：https://en.wikipedia.org/wiki/Round-robin_scheduling
 // 参考2: https://c.biancheng.net/view/1247.html
-// 该算法中，将一个较小时间单元定义为时间量或时间片。时间片的大小通常为 10~100ms。
-// 就绪队列作为循环队列。CPU 调度程序循环整个就绪队列，为每个进程分配不超过一个时间片的 CPU。
 // 时间单位：ms
-func RoundRobin(processes []Process, timeSlice int) {
+func RoundRobin(processes []models.Process, timeSlice int) {
 	// 数据预处理
 	for i := range processes {
 		processes[i].StartTime = -1
 	}
 
-	queue := Queue{}
+	queue := models.Queue{}
 
 	time := 1 // 模拟当前时间，判断进程是否到达
 
