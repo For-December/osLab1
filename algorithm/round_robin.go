@@ -17,7 +17,7 @@ func RoundRobin(processes []models.Process, timeSlice int) {
 
 	queue := models.Queue{}
 
-	time := 1 // 模拟当前时间，判断进程是否到达
+	time := 0 // 模拟当前时间，判断进程是否到达
 
 	// 轮询队列，直到所有进程完成
 	for len(processes) > 0 || !queue.IsEmpty() {
