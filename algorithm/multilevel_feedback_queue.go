@@ -1,7 +1,7 @@
 package algorithm
 
 import (
-	"fmt"
+	"osLab1/enums"
 	"osLab1/models"
 )
 
@@ -40,7 +40,11 @@ func MultilevelFeedbackQueue(processes []models.Process, timeSlices []int) {
 			p.StartTime = time
 		}
 
+		// 就绪 => 运行
+		convertProcessStatus(p, enums.Running, time)
+
 		// 运行进程，直到时间片用完或进程完成
+		processRunning(p, time)
 		runTime := min(timeSlices[queueLevel], p.RemainingTime)
 		time += runTime
 		p.RemainingTime -= runTime
@@ -54,8 +58,13 @@ func MultilevelFeedbackQueue(processes []models.Process, timeSlices []int) {
 			p.FinishTime = time
 			p.WaitingTime = p.FinishTime - p.ArrivalTime - p.ExecuteTime
 			p.ResponseTime = p.StartTime - p.ArrivalTime
-			fmt.Printf("Process %d finished at time %d\n", p.PID, p.FinishTime)
+
+			// 进程完成
+			processFinish(p, time)
 		} else {
+			// 运行 => 就绪
+			convertProcessStatus(p, enums.Ready, time)
+
 			// 如果进程未执行完，重新加入队列，并降低优先级
 			if queueLevel+1 < len(queues) {
 				queues[queueLevel+1].Enqueue(*p)
