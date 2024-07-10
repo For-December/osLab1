@@ -3,7 +3,6 @@ package algorithm
 import (
 	"osLab1/enums"
 	"osLab1/models"
-	"osLab1/utls/logger"
 )
 
 // RoundRobin 模拟时间片轮转调度算法
@@ -40,17 +39,12 @@ func RoundRobin(processes []models.Process, timeSlice int) {
 			p.StartTime = time
 		}
 
-		logger.WarningF("<%d ms> [进程 %d] 状态转换：「%s」=> 「%s」",
-			time,
-			p.PID,
-			enums.GetStateName(p.State),
-			enums.GetStateName(enums.Running))
-		p.State = enums.Running
+		// 就绪 => 运行
+		convertProcessStatus(p, enums.Running, time)
 
 		// 运行进程，直到时间片用完或进程完成
-		logger.InfoF("<%d ms>  [进程 %d] 运行",
-			time,
-			p.PID)
+		processRunning(p, time)
+
 		runTime := min(timeSlice, p.RemainingTime)
 		time += runTime
 		p.RemainingTime -= runTime
@@ -64,16 +58,10 @@ func RoundRobin(processes []models.Process, timeSlice int) {
 			p.FinishTime = time
 			p.WaitingTime = p.FinishTime - p.ArrivalTime - p.ExecuteTime
 			p.ResponseTime = p.StartTime - p.ArrivalTime
-			logger.ErrorF("<%d ms> [进程 %d] 完成",
-				time,
-				p.PID)
+			processFinish(p, time)
 		} else {
-			logger.WarningF("<%d ms> [进程 %d] 状态转换：「%s」=> 「%s」",
-				time,
-				p.PID,
-				enums.GetStateName(p.State),
-				enums.GetStateName(enums.Ready))
-			p.State = enums.Ready
+			// 运行 => 就绪
+			convertProcessStatus(p, enums.Ready, time)
 
 			// 将该进程重新放入队列，等待下一次调度
 			// 如果时间片用完和新进程到达同时发生，认为新进程到达先发生

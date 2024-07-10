@@ -1,6 +1,7 @@
 package algorithm
 
 import (
+	"osLab1/enums"
 	"osLab1/models"
 	"osLab1/utls/logger"
 )
@@ -17,4 +18,27 @@ func addNewProcessToQueue(processes *[]models.Process, queue *models.Queue, time
 		queue.Enqueue((*processes)[0])
 		*processes = (*processes)[1:]
 	}
+}
+
+func convertProcessStatus(p *models.Process, newStatus enums.ProcessState, time int) {
+
+	logger.WarningF("<%d ms> [进程 %d] 状态转换：「%s」=> 「%s」",
+		time,
+		p.PID,
+		enums.GetStateName(p.State),
+		enums.GetStateName(newStatus))
+	p.State = newStatus
+
+}
+
+func processRunning(p *models.Process, time int) {
+	logger.InfoF("<%d ms>  [进程 %d] 运行",
+		time,
+		p.PID)
+}
+
+func processFinish(p *models.Process, time int) {
+	logger.ErrorF("<%d ms> [进程 %d] 完成",
+		time,
+		p.PID)
 }
