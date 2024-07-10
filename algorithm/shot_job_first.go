@@ -1,7 +1,7 @@
 package algorithm
 
 import (
-	"fmt"
+	"osLab1/enums"
 	"osLab1/models"
 	"sort"
 )
@@ -19,10 +19,7 @@ func ShortestJobFirst(processes []models.Process) {
 	for len(processes) > 0 || !queue.IsEmpty() {
 
 		// 将所有 当前时刻（time） 到达的进程加入队列
-		for len(processes) > 0 && processes[0].ArrivalTime <= time {
-			queue.Enqueue(processes[0])
-			processes = processes[1:]
-		}
+		addNewProcessToQueue(&processes, &queue, time)
 
 		// 队列里的进程按照剩余时间排序，剩余时间短的进程优先执行
 		sort.Slice(queue.Items, func(i, j int) bool {
@@ -43,15 +40,24 @@ func ShortestJobFirst(processes []models.Process) {
 			p.StartTime = time
 		}
 
+		// 就绪 => 运行
+		convertProcessStatus(p, enums.Running, time)
+
 		// 运行进程，直到进程完成
+		processRunning(p, time)
 		time += p.RemainingTime
 		p.RemainingTime = 0
+
+		// 每次时间流逝都需要将当前时间到达的进程加入队列
+		// 在这里立即添加，以实现：如果时间片用完和新进程到达同时发生，认为新进程到达先发生
+		addNewProcessToQueue(&processes, &queue, time)
 
 		// 设置进程的完成时间、等待时间和响应时间
 		p.FinishTime = time
 		p.WaitingTime = p.FinishTime - p.ArrivalTime - p.ExecuteTime
 		p.ResponseTime = p.StartTime - p.ArrivalTime
-		fmt.Printf("Process %d finished at time %d\n",
-			p.PID, p.FinishTime)
+
+		// 进程完成
+		processFinish(p, time)
 	}
 }
