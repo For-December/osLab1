@@ -80,6 +80,7 @@ func RoundRobin(processes []models.Process, timeSlice int) {
 			p.State = enums.Ready
 
 			// 将该进程重新放入队列，等待下一次调度
+			// 如果时间片用完和新进程到达同时发生，认为时间片用完先发生
 			queue.Enqueue(*p)
 		}
 	}
