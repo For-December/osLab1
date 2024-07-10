@@ -7,8 +7,9 @@ import (
 )
 
 // RoundRobin 模拟时间片轮转调度算法
-// 参考1：https://en.wikipedia.org/wiki/Round-robin_scheduling
-// 参考2: https://c.biancheng.net/view/1247.html
+// 如果时间片用完和新进程到达同时发生，认为新进程到达先发生
+// 原理参考1：https://en.wikipedia.org/wiki/Round-robin_scheduling
+// 原理参考2: https://c.biancheng.net/view/1247.html
 // 时间单位：ms
 func RoundRobin(processes []models.Process, timeSlice int) {
 	// 数据预处理
@@ -17,22 +18,13 @@ func RoundRobin(processes []models.Process, timeSlice int) {
 	}
 
 	queue := models.Queue{}
-
 	time := 0 // 模拟当前时间，判断进程是否到达
 
 	// 轮询队列，直到所有进程完成
 	for len(processes) > 0 || !queue.IsEmpty() {
 
-		// 将所有 当前时刻（time） 到达的进程加入队列
-		for len(processes) > 0 && processes[0].ArrivalTime <= time {
-
-			logger.DebugF("<%d ms> [进程 %d]: arrived at time %d",
-				time,
-				processes[0].PID, time)
-
-			queue.Enqueue(processes[0])
-			processes = processes[1:]
-		}
+		// 所有当前时间到达的进程入队
+		addNewProcessToQueue(&processes, &queue, time)
 
 		// 如果队列为空，当前时刻没有进程到达，时间流逝，CPU 等待下一个进程到达
 		if queue.IsEmpty() {
@@ -63,6 +55,10 @@ func RoundRobin(processes []models.Process, timeSlice int) {
 		time += runTime
 		p.RemainingTime -= runTime
 
+		// 每次时间流逝都需要将当前时间到达的进程加入队列
+		// 在这里立即添加，以实现：如果时间片用完和新进程到达同时发生，认为新进程到达先发生
+		addNewProcessToQueue(&processes, &queue, time)
+
 		// 如果进程执行完毕，设置它的完成时间、等待时间和响应时间
 		if p.RemainingTime == 0 {
 			p.FinishTime = time
@@ -80,7 +76,8 @@ func RoundRobin(processes []models.Process, timeSlice int) {
 			p.State = enums.Ready
 
 			// 将该进程重新放入队列，等待下一次调度
-			// 如果时间片用完和新进程到达同时发生，认为时间片用完先发生
+			// 如果时间片用完和新进程到达同时发生，认为新进程到达先发生
+			// 前面已经将新进程入队，这里再将时间片用完的进程入队
 			queue.Enqueue(*p)
 		}
 	}
