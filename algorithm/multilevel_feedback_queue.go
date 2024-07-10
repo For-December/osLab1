@@ -13,11 +13,7 @@ func MultilevelFeedbackQueue(processes []models.Process, timeSlices []int) {
 	for len(processes) > 0 || !allQueuesEmpty(queues) {
 
 		// 所有到达时间为当前时间的进程加入第一个队列
-		for len(processes) > 0 && processes[0].ArrivalTime <= time {
-
-			queues[0].Enqueue(processes[0])
-			processes = processes[1:]
-		}
+		addNewProcessToQueue(&processes, &queues[0], time)
 
 		// 优先级从高到低，找到第一个非空队列
 		var currentQueue *models.Queue
@@ -48,6 +44,10 @@ func MultilevelFeedbackQueue(processes []models.Process, timeSlices []int) {
 		runTime := min(timeSlices[queueLevel], p.RemainingTime)
 		time += runTime
 		p.RemainingTime -= runTime
+
+		// 每次时间流逝都需要将当前时间到达的进程加入队列
+		// 在这里立即添加，以实现：如果时间片用完和新进程到达同时发生，认为新进程到达先发生
+		addNewProcessToQueue(&processes, currentQueue, time)
 
 		// 如果进程执行完毕，设置它的完成时间、等待时间和响应时间
 		if p.RemainingTime == 0 {

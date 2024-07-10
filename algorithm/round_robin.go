@@ -48,9 +48,9 @@ func RoundRobin(processes []models.Process, timeSlice int) {
 		p.State = enums.Running
 
 		// 运行进程，直到时间片用完或进程完成
-		logger.InfoF("<%d ms>  [进程 %d]: running at time %d",
+		logger.InfoF("<%d ms>  [进程 %d] 运行",
 			time,
-			p.PID, time)
+			p.PID)
 		runTime := min(timeSlice, p.RemainingTime)
 		time += runTime
 		p.RemainingTime -= runTime
@@ -64,9 +64,9 @@ func RoundRobin(processes []models.Process, timeSlice int) {
 			p.FinishTime = time
 			p.WaitingTime = p.FinishTime - p.ArrivalTime - p.ExecuteTime
 			p.ResponseTime = p.StartTime - p.ArrivalTime
-			logger.WarningF("<%d ms> [进程 %d]: finished at time %d",
+			logger.ErrorF("<%d ms> [进程 %d] 完成",
 				time,
-				p.PID, p.FinishTime)
+				p.PID)
 		} else {
 			logger.WarningF("<%d ms> [进程 %d] 状态转换：「%s」=> 「%s」",
 				time,

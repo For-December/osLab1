@@ -2,7 +2,8 @@ package main
 
 import "osLab1/models"
 
-// GenerateProcesses generates a list of processes for testing
+// GenerateProcesses 生成测试进程
+// 该测试进程来自王道：https://blog.csdn.net/yrx420909/article/details/104363553
 func GenerateProcesses() []models.Process {
 	processes := []models.Process{
 		{PID: 1, ArrivalTime: 0, ExecuteTime: 5, RemainingTime: 5, Priority: 2},
