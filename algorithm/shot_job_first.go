@@ -7,10 +7,19 @@ import (
 )
 
 // ShortestJobFirst 短作业优先调度算法
-func ShortestJobFirst(processes []models.Process) {
+func ShortestJobFirst(rawProcesses []models.Process) {
+
+	calculateProcesses := make([]models.Process, len(rawProcesses))
+	// 复制，防止修改外部数组的元素
+	copy(calculateProcesses, rawProcesses)
+
+	// 保存原始数据的地址，以便直接修改原始数据（为了最终统计）
+	processes := make([]*models.Process, len(calculateProcesses))
+
 	// 数据预处理
-	for i := range processes {
-		processes[i].StartTime = -1
+	for i := range calculateProcesses {
+		calculateProcesses[i].StartTime = -1
+		processes[i] = &calculateProcesses[i]
 	}
 
 	queue := models.Queue{}
@@ -60,4 +69,7 @@ func ShortestJobFirst(processes []models.Process) {
 		// 进程完成
 		processFinish(p, time)
 	}
+
+	// 指标计算
+	calculateMetrics(calculateProcesses, time)
 }

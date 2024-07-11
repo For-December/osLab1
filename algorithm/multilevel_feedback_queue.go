@@ -7,7 +7,21 @@ import (
 
 // MultilevelFeedbackQueue 模拟多级反馈队列调度算法
 // 参考：https://blog.csdn.net/weixin_44730681/article/details/109270711
-func MultilevelFeedbackQueue(processes []models.Process, timeSlices []int) {
+func MultilevelFeedbackQueue(rawProcesses []models.Process, timeSlices []int) {
+
+	calculateProcesses := make([]models.Process, len(rawProcesses))
+	// 复制，防止修改外部数组的元素
+	copy(calculateProcesses, rawProcesses)
+
+	// 保存原始数据的地址，以便直接修改原始数据（为了最终统计）
+	processes := make([]*models.Process, len(calculateProcesses))
+
+	// 数据预处理
+	for i := range calculateProcesses {
+		calculateProcesses[i].StartTime = -1
+		processes[i] = &calculateProcesses[i]
+	}
+
 	queues := make([]models.Queue, len(timeSlices))
 	time := 0
 	for len(processes) > 0 || !allQueuesEmpty(queues) {
@@ -67,13 +81,16 @@ func MultilevelFeedbackQueue(processes []models.Process, timeSlices []int) {
 
 			// 如果进程未执行完，重新加入队列，并降低优先级
 			if queueLevel+1 < len(queues) {
-				queues[queueLevel+1].Enqueue(*p)
+				queues[queueLevel+1].Enqueue(p)
 			} else {
 				// 如果已经是最低优先级，重新加入之前的队列队尾
-				queues[queueLevel].Enqueue(*p)
+				queues[queueLevel].Enqueue(p)
 			}
 		}
 	}
+
+	// 指标计算
+	calculateMetrics(calculateProcesses, time)
 }
 
 // allQueuesEmpty 检查所有队列是否为空

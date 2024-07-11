@@ -10,10 +10,19 @@ import (
 // 原理参考1：https://en.wikipedia.org/wiki/Round-robin_scheduling
 // 原理参考2: https://c.biancheng.net/view/1247.html
 // 时间单位：ms
-func RoundRobin(processes []models.Process, timeSlice int) {
+func RoundRobin(rawProcesses []models.Process, timeSlice int) {
+
+	calculateProcesses := make([]models.Process, len(rawProcesses))
+	// 复制，防止修改外部数组的元素
+	copy(calculateProcesses, rawProcesses)
+
+	// 保存原始数据的地址，以便直接修改原始数据（为了最终统计）
+	processes := make([]*models.Process, len(calculateProcesses))
+
 	// 数据预处理
-	for i := range processes {
-		processes[i].StartTime = -1
+	for i := range calculateProcesses {
+		calculateProcesses[i].StartTime = -1
+		processes[i] = &calculateProcesses[i]
 	}
 
 	queue := models.Queue{}
@@ -23,6 +32,7 @@ func RoundRobin(processes []models.Process, timeSlice int) {
 	for len(processes) > 0 || !queue.IsEmpty() {
 
 		// 所有当前时间到达的进程入队
+		// 传地址是因为数组首地址会被修改
 		addNewProcessToQueue(&processes, &queue, time)
 
 		// 如果队列为空，当前时刻没有进程到达，时间流逝，CPU 等待下一个进程到达
@@ -66,7 +76,10 @@ func RoundRobin(processes []models.Process, timeSlice int) {
 			// 将该进程重新放入队列，等待下一次调度
 			// 如果时间片用完和新进程到达同时发生，认为新进程到达先发生
 			// 前面已经将新进程入队，这里再将时间片用完的进程入队
-			queue.Enqueue(*p)
+			queue.Enqueue(p)
 		}
 	}
+
+	// 指标计算
+	calculateMetrics(calculateProcesses, time)
 }
