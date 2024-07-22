@@ -3,6 +3,7 @@ package algorithm
 import (
 	"osLab1/enums"
 	"osLab1/models"
+	"osLab1/utls/logger"
 )
 
 // MultilevelFeedbackQueue 模拟多级反馈队列调度算法
@@ -81,6 +82,9 @@ func MultilevelFeedbackQueue(rawProcesses []models.Process, timeSlices []int) {
 
 			// 如果进程未执行完，重新加入队列，并降低优先级
 			if queueLevel+1 < len(queues) {
+				logger.WarningF("<%d ms> [进程 %d] 进入下一级优先队列",
+					time,
+					p.PID)
 				queues[queueLevel+1].Enqueue(p)
 			} else {
 				// 如果已经是最低优先级，重新加入之前的队列队尾
